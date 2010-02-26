@@ -1,4 +1,5 @@
 #include "types.h"
+
 #include "defs.h"
 #include "param.h"
 #include "mmu.h"
@@ -6,8 +7,10 @@
 #include "proc.h"
 #include "spinlock.h"
 
-
 #define DEFAULT_NUM_TIX 75;
+struct mutex_t{
+  unsigned int lock;
+};
 
 struct spinlock proc_table_lock;
 
@@ -685,3 +688,53 @@ tick(void)
 return ticks;
 }
 
+
+
+
+void sleepcond(uint c, struct mutex_t * m) {
+  if(cp == 0)
+    panic("sleep");
+  acquire(&proc_table_lock);
+  cp->state = SLEEPING;
+  cp->cond = c;
+  cp->mutex = (int)m;
+  mutex_unlock(m);
+  popcli();
+  sched();
+  cprintf("hi mom\n");
+  release(&proc_table_lock);
+}
+
+
+int wakecond(uint c) {
+  acquire(&proc_table_lock);
+  struct proc * p;
+  for(p = proc; p < &proc[NPROC]; p++)
+    {
+      if(p->state == SLEEPING && p->cond == c)
+	{
+	  p->state = RUNNING;
+	  p->cond = 0;
+	  struct mutex_t * mut;
+	  mut = (struct mutex_t*) p->mutex;
+	  mutex_lock(mut);
+	  p->mutex = 0;
+	  break;
+	}
+    }
+  release(&proc_table_lock);
+  return p->pid;
+}
+
+void mutex_lock(struct mutex_t* lock) {
+  while(xchg(&lock->lock, 1) == 1);
+}
+
+void mutex_unlock(struct mutex_t* lock) {
+  xchg(&lock->lock, 0);
+}
+
+
+uint xchnge(volatile uint * mem, uint new) {
+	return xchg(mem, new);
+}

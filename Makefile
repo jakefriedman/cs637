@@ -106,8 +106,8 @@ UPROGS=\
 	_mkdir\
 	_rm\
 	_sh\
-	_threadtest\
 	_usertests\
+	_lt\
 	_wc\
 	_zombie\
 

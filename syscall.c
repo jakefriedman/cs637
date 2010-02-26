@@ -100,6 +100,9 @@ extern int sys_tick(void);
 extern int sys_fork_tickets(void);
 extern int sys_fork_thread(void);
 extern int sys_wait_thread(void);
+extern int sys_sleep_cond(void);
+extern int sys_wake_cond(void);
+extern int sys_xchng(void);
 
 static int (*syscalls[])(void) = {
 [SYS_chdir]   		sys_chdir,
@@ -125,7 +128,10 @@ static int (*syscalls[])(void) = {
 [SYS_tick]    		sys_tick,
 [SYS_fork_tickets]   	sys_fork_tickets,
 [SYS_fork_thread]	sys_fork_thread,
-[SYS_wait_thread] sys_wait_thread,
+[SYS_wait_thread] 	sys_wait_thread,
+[SYS_sleep_cond]	sys_sleep_cond,
+[SYS_wake_cond]		sys_wake_cond,
+[SYS_xchng]		sys_xchng,
 };
 
 void

@@ -23,3 +23,6 @@
 #define SYS_fork_tickets	22
 #define SYS_fork_thread 23
 #define SYS_wait_thread 24
+#define SYS_sleep_cond 25
+#define SYS_wake_cond 26
+#define SYS_xchng 27

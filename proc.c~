@@ -1,4 +1,5 @@
 #include "types.h"
+
 #include "defs.h"
 #include "param.h"
 #include "mmu.h"
@@ -6,8 +7,10 @@
 #include "proc.h"
 #include "spinlock.h"
 
-
 #define DEFAULT_NUM_TIX 75;
+struct mutex_t{
+  unsigned int lock;
+};
 
 struct spinlock proc_table_lock;
 
@@ -196,7 +199,7 @@ copyproc_threads(struct proc *p, int stack, int routine, int args)
   
   np->tf->esp = (stack + 1024 - 12);
   *(int *)(np->tf->esp + np->mem) = routine;
-  *(int *)(np->tf->esp + np->mem + 8) = args;
+  *(int *)(np->tf->esp + np->mem + 8) = args;;
   return np;
 }
 
@@ -312,9 +315,11 @@ curproc(void)
 void
 scheduler(void)
 {
-   struct proc *p;
+  struct proc *p;
   struct cpu *c;
   int i;
+  int total_tix;     	//total number of tickets of all processes
+  int ticket;
 
   c = &cpus[cpu()];
   for(;;){
@@ -323,16 +328,13 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&proc_table_lock);
-    for(i = 0; i < NPROC; i++){
-      p = &proc[i];
-      if(p->state != RUNNABLE)
-        continue;
-
-      // Switch to chosen process.  It is the process's job
-      // to release proc_table_lock and then reacquire it
-      // before jumping back to us.
-      c->curproc = p;
+	
+	if((proc[0].pid == 1) && (proc[0].state == RUNNABLE)){
+		  p = &proc[0];
+			//cprintf("init\n");
+		  c->curproc = p;
       setupsegs(p);
+      p->num_tix = 75;
       p->state = RUNNING;
       swtch(&c->context, &p->context);
 
@@ -340,9 +342,55 @@ scheduler(void)
       // It should have changed its p->state before coming back.
       c->curproc = 0;
       setupsegs(0);
-    }
-    release(&proc_table_lock);
-
+      release(&proc_table_lock);
+	}else{
+		// loop over process table and count number of tickets
+		total_tix = 0;
+		//cprintf("----LOOPING THROUGH PROCCESS TABLE---\n");
+		for(i = 0; i < NPROC; i++){
+			p = &proc[i];	
+			//cprintf("process pid: %d\n", p->pid);
+			//if(p->state == RUNNABLE)
+			//	cprintf("process is RUNNABLE\n");
+			//else
+			//	cprintf("process is in state %d\n", p->state); 
+			if(p->state == RUNNABLE){				        //if process is runnable
+				total_tix = total_tix + p->num_tix;   //update total num of tickets
+			}
+		}
+		//cprintf("number of tickets: %d\n", total_tix);
+		if(total_tix != 0)
+			ticket = (tick() * 256)%total_tix;   //get our lucky winner
+		//cprintf("winning ticket is %d\n", ticket);
+		total_tix = 0;  					   //now total will hold the ticket numbers we've seen so far
+		//find the process that corresponds to this ticket
+	  for(i = 0; i < NPROC; i++){
+	  p = &proc[i];	
+	  if(p->state == RUNNABLE){				        //if process is runnable
+			total_tix = total_tix + p->num_tix;   //update total num of tickets
+	  }
+	  //cprintf("here\n");
+		if(total_tix > ticket){
+	
+    	  // Switch to chosen process.  It is the process's job
+    	  // to release proc_table_lock and then reacquire it
+    	  // before jumping back to us.
+    	  //cprintf("pid of picked process is %d\n", p->pid);
+    	  c->curproc = p;
+    	  setupsegs(p);
+    	  p->state = RUNNING;
+    	  swtch(&c->context, &p->context);
+	
+				//cprintf("process is now in state %d\n", p->state);
+    	  // Process is done running for now.
+    	  // It should have changed its p->state before coming back.
+    	  c->curproc = 0;
+    	  setupsegs(0);
+    	  break; 
+    	}
+    	}
+    	release(&proc_table_lock);
+		}
   }
 }
 
@@ -640,3 +688,53 @@ tick(void)
 return ticks;
 }
 
+
+
+
+void sleepcond(uint c, struct mutex_t * m) {
+  if(cp == 0)
+    panic("sleep");
+  acquire(&proc_table_lock);
+  cp->state = SLEEPING;
+  cp->cond = c;
+  cp->mutex = (int)m;
+  mutex_unlock(m);
+  popcli();
+  sched();
+  cprintf("hi mom\n");
+  release(&proc_table_lock);
+}
+
+
+int wakecond(uint c) {
+  acquire(&proc_table_lock);
+  struct proc * p;
+  for(p = proc; p < &proc[NPROC]; p++)
+    {
+      if(p->state == SLEEPING && p->cond == c)
+	{
+	  p->state = RUNNING;
+	  p->cond = 0;
+	  struct mutex_t * mut;
+	  mut = (struct mutex_t*) p->mutex;
+	  mutex_lock(mut);
+	  p->mutex = 0;
+	  break;
+	}
+    }
+  release(&proc_table_lock);
+  return p->pid;
+}
+
+void mutex_lock(struct mutex_t* lock) {
+  while(xchng(&lock->lock, 1) == 1);
+}
+
+void mutex_unlock(struct mutex_t* lock) {
+  xchng(&lock->lock, 0);
+}
+
+
+uint xchnge(volatile uint * mem, uint new) {
+	return xchg(mem, new);
+}

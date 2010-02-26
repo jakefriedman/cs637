@@ -6,6 +6,8 @@ struct pipe;
 struct proc;
 struct spinlock;
 struct stat;
+struct mutex_t;
+struct cond_t;
 
 // bio.c
 void            binit(void);
@@ -105,6 +107,10 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+void		sleepcond(unsigned int, struct mutex_t *);
+int		wakecond(unsigned int);
+unsigned int    xchnge(volatile unsigned int *, unsigned int);
+
 
 // swtch.S
 void            swtch(struct context*, struct context*);

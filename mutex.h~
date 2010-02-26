@@ -1,0 +1,24 @@
+
+struct mutex_t{
+  unsigned int lock;
+};
+
+struct cond_t {
+  unsigned int value;
+};
+
+
+
+
+void mutex_init(struct mutex_t* lock) {
+  xchng(&lock->lock, 0); //0 is unused
+}
+
+void mutex_lock(struct mutex_t* lock) {
+  while(xchng(&lock->lock, 1) == 1);
+}
+
+void mutex_unlock(struct mutex_t* lock) {
+  xchng(&lock->lock, 0);
+}
+

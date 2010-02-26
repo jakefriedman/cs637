@@ -3,6 +3,32 @@
 #include "param.h"
 #include "mmu.h"
 #include "proc.h"
+//#include "thread.h"
+struct mutex_t;
+
+int
+sys_sleep_cond(void) {
+  uint c;
+  int m;
+  pushcli(); //release in proc.c
+  if((argint(0, &c) < 0) || (argint(1, &m) < 0))
+     return -1;
+  struct mutex_t * mut = (struct mutex_t *) m;
+  sleepcond(c,mut);
+  return 0;
+}
+
+int
+sys_wake_cond(void) {
+  int c;
+  pushcli();
+  if(argint(0, &c) < 0)
+    return -1;
+
+  int pid = wakecond(c);
+  popcli();
+  return pid;
+}
 
 int
 sys_fork(void)
@@ -35,7 +61,7 @@ sys_fork_thread(void)
    }
 
   np->state = RUNNABLE;
-  
+  pid = np->pid;
   return pid;
 }
 
@@ -61,8 +87,9 @@ int
 sys_exit(void)
 {
   exit();
-  return 0;  // not reached
 }
+
+
 
 int
 sys_wait_thread(void)
@@ -129,4 +156,16 @@ int
 sys_tick(void)
 {
 return ticks;
+}
+
+uint
+sys_xchng(void)
+{
+  volatile unsigned int *mem;
+  unsigned int new; 
+  if(argint(0, &mem) < 0)
+    return -1;
+  if(argint(1, &new) < 0)
+    return -1;
+  return xchnge(mem, new);
 }
