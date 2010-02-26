@@ -41,6 +41,8 @@ allocproc(void)
     p = &proc[i];
     if(p->state == UNUSED){
       p->state = EMBRYO;
+	  p->mutex = 0;
+	  p->cond = 0;
       p->pid = nextpid++;
       release(&proc_table_lock);
       return p;
@@ -133,6 +135,8 @@ copyproc(struct proc *p)
       np->kstack = 0;
       np->state = UNUSED;
       np->parent = 0;
+	//np->mutex = 0;
+	//np->cond = 0;
       return 0;
     }
     memmove(np->mem, p->mem, np->sz);
@@ -584,7 +588,12 @@ wait(void)
           p->pid = 0;
           p->parent = 0;
           p->name[0] = 0;
+	  p->mutex = 0;
+	  p->mutex = 0;
+	  p->cond = 0;
+	  p->cond = 0;
           release(&proc_table_lock);
+
           return pid;
         }
         havekids = 1;
@@ -626,6 +635,8 @@ wait_thread(void)
           p->state = UNUSED;
           p->pid = 0;
           p->parent = 0;
+	  p->mutex = 0;
+	  p->cond = 0;
           p->name[0] = 0;
           release(&proc_table_lock);
           return pid;
@@ -709,25 +720,39 @@ void sleepcond(uint c, struct mutex_t * m) {
 int wakecond(uint c) {
   acquire(&proc_table_lock);
   struct proc * p;
+  int done = 0;
+ cprintf("loooking for cond %d to wake\n", c);
   for(p = proc; p < &proc[NPROC]; p++)
     {
+	//cprintf("proc addr%d, cond %d\n", p, p->cond);
       if(p->state == SLEEPING && p->cond == c)
 	{
 	  p->state = RUNNING;
 	  p->cond = 0;
 	  struct mutex_t * mut;
 	  mut = (struct mutex_t*) p->mutex;
+	  cprintf("found1!, pid %d\n", p->pid);
 	  mutex_lock(mut);
+	  done = 1;
 	  p->mutex = 0;
+
 	  break;
 	}
     }
+  cprintf("exited loop\n");
   release(&proc_table_lock);
-  return p->pid;
+  if(done == 1)
+     return p->pid;
+  else
+{
+cprintf("none found\n");	  cprintf("found1!, pid %d\n", p->pid);
+     return -1;
+}
 }
 
 void mutex_lock(struct mutex_t* lock) {
-  while(xchg(&lock->lock, 1) == 1);
+  while(xchg(&lock->lock, 1) == 1)
+	cprintf("waiting\n");
 }
 
 void mutex_unlock(struct mutex_t* lock) {
