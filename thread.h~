@@ -2,29 +2,33 @@
 //#include "x86.h"
 
 struct mutex_t{
-  unsigned int lock;
+  volatile unsigned int lock;
 };
 
 struct cond_t {
-  unsigned int value;
+  volatile unsigned int value;
 };
 
 
-static unsigned int cond_count = 0;
+static volatile unsigned int cond_count = 0;
 
 
 
 
 void mutex_init(struct mutex_t* lock) {
-  xchng(&lock->lock, 0); //0 is unused
+  xchng(lock->lock, 0); //0 is unused
 }
 
 void mutex_lock(struct mutex_t* lock) {
-  while(xchng(&lock->lock, 1) == 1);
+  //printf(1,"locking-%d,value-%d\n", lock, lock->lock);
+  while(xchng(lock->lock, 1) == 1){;}
+   // printf(1,"spin\n");
+  printf(1,"locked-%d,value-%d\n", lock, lock->lock);
 }
 
 void mutex_unlock(struct mutex_t* lock) {
-  xchng(&lock->lock, 0);
+  xchng(lock->lock, 0);
+  //printf(1,"unlocked-%d\n", lock);
 }
 
 
@@ -58,10 +62,7 @@ void cond_init(struct cond_t * c) {
   cond_count++;
   if(cond_count == 0)
     cond_count = 1;
-}proc
-			
-	
-	
+}	
 
 void thread_wait(){
 	

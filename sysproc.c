@@ -12,8 +12,11 @@ sys_sleep_cond(void) {
   int m;
   pushcli(); //release in proc.c
   if((argint(0, &c) < 0) || (argint(1, &m) < 0))
+{
+popcli();
      return -1;
-  struct mutex_t * mut = (struct mutex_t *) m;
+} 
+struct mutex_t * mut = (struct mutex_t *) m;
   sleepcond(c,mut);
   return 0;
 }
@@ -23,10 +26,13 @@ sys_wake_cond(void) {
   int c;
   pushcli();
   if(argint(0, &c) < 0)
-    return -1;
-
+{
+popcli();    
+return -1;
+}
   int pid = wakecond(c);
   popcli();
+//cprintf("almost back!\n");
   return pid;
 }
 
@@ -161,11 +167,12 @@ return ticks;
 uint
 sys_xchng(void)
 {
-  volatile unsigned int *mem;
+  volatile unsigned int mem;
   unsigned int new; 
   if(argint(0, &mem) < 0)
     return -1;
   if(argint(1, &new) < 0)
     return -1;
-  return xchnge(mem, new);
+  volatile unsigned int * p = &mem;
+  return xchnge(p, new);
 }

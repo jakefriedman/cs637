@@ -9,7 +9,7 @@
 
 #define DEFAULT_NUM_TIX 75;
 struct mutex_t{
-  unsigned int lock;
+  volatile unsigned int lock;
 };
 
 struct spinlock proc_table_lock;
@@ -712,8 +712,12 @@ void sleepcond(uint c, struct mutex_t * m) {
   mutex_unlock(m);
   popcli();
   sched();
-  cprintf("hi mom\n");
+  pushcli();
+  mutex_lock(m);
+  cp->mutex = 0;
+  cp->cond = 0;
   release(&proc_table_lock);
+  popcli();
 }
 
 
@@ -721,41 +725,49 @@ int wakecond(uint c) {
   acquire(&proc_table_lock);
   struct proc * p;
   int done = 0;
- cprintf("loooking for cond %d to wake\n", c);
+ //cprintf("loooking for cond %d to wake\n", c);
   for(p = proc; p < &proc[NPROC]; p++)
     {
 	//cprintf("proc addr%d, cond %d\n", p, p->cond);
       if(p->state == SLEEPING && p->cond == c)
 	{
-	  p->state = RUNNING;
-	  p->cond = 0;
+	  p->state = RUNNABLE;
+	  //p->cond = 0;
 	  struct mutex_t * mut;
 	  mut = (struct mutex_t*) p->mutex;
-	  cprintf("found1!, pid %d\n", p->pid);
-	  mutex_lock(mut);
+	// cprintf("found1!, pid %d\n", p->pid);
+	  //mutex_lock(mut);
 	  done = 1;
-	  p->mutex = 0;
+	  //p->mutex = 0;
 
 	  break;
 	}
     }
-  cprintf("exited loop\n");
-  release(&proc_table_lock);
-  if(done == 1)
-     return p->pid;
-  else
+ 
+  //cprintf("exited loop\n");
+
+
+release(&proc_table_lock);
+
+if(done)
 {
-cprintf("none found\n");	  cprintf("found1!, pid %d\n", p->pid);
-     return -1;
+ return p->pid;
 }
+cprintf("none found\n");	 
+     return -1;
+
 }
 
 void mutex_lock(struct mutex_t* lock) {
+  //cprintf("locking,kernel-%d,value-%d\n", lock, lock->lock);
   while(xchg(&lock->lock, 1) == 1);
+	cprintf("waiting\n");
 }
 
 void mutex_unlock(struct mutex_t* lock) {
+  //cprintf("unlocking,kernel-%d\n", lock);
   xchg(&lock->lock, 0);
+ // cprintf("unlockkernelval-%d\n", lock->lock);
 }
 
 
