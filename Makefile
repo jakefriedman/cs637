@@ -109,6 +109,7 @@ UPROGS=\
 	_usertests\
 	_lt\
 	_cvtest\
+	_chktest\
 	_wc\
 	_zombie\
 

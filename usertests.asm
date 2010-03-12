@@ -6409,14 +6409,11 @@ gets(char *buf, int max)
     2e70:	b8 1b 00 00 00       	mov    $0x1b,%eax
     2e75:	cd 30                	int    $0x30
     2e77:	c3                   	ret    
-    2e78:	90                   	nop    
-    2e79:	90                   	nop    
-    2e7a:	90                   	nop    
-    2e7b:	90                   	nop    
-    2e7c:	90                   	nop    
-    2e7d:	90                   	nop    
-    2e7e:	90                   	nop    
-    2e7f:	90                   	nop    
+
+00002e78 <check>:
+    2e78:	b8 1c 00 00 00       	mov    $0x1c,%eax
+    2e7d:	cd 30                	int    $0x30
+    2e7f:	c3                   	ret    
 
 00002e80 <putc>:
 #include "stat.h"

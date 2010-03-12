@@ -773,14 +773,11 @@ gets(char *buf, int max)
  3f0:	b8 1b 00 00 00       	mov    $0x1b,%eax
  3f5:	cd 30                	int    $0x30
  3f7:	c3                   	ret    
- 3f8:	90                   	nop    
- 3f9:	90                   	nop    
- 3fa:	90                   	nop    
- 3fb:	90                   	nop    
- 3fc:	90                   	nop    
- 3fd:	90                   	nop    
- 3fe:	90                   	nop    
- 3ff:	90                   	nop    
+
+000003f8 <check>:
+ 3f8:	b8 1c 00 00 00       	mov    $0x1c,%eax
+ 3fd:	cd 30                	int    $0x30
+ 3ff:	c3                   	ret    
 
 00000400 <putc>:
 #include "stat.h"

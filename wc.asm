@@ -875,14 +875,11 @@ gets(char *buf, int max)
  480:	b8 1b 00 00 00       	mov    $0x1b,%eax
  485:	cd 30                	int    $0x30
  487:	c3                   	ret    
- 488:	90                   	nop    
- 489:	90                   	nop    
- 48a:	90                   	nop    
- 48b:	90                   	nop    
- 48c:	90                   	nop    
- 48d:	90                   	nop    
- 48e:	90                   	nop    
- 48f:	90                   	nop    
+
+00000488 <check>:
+ 488:	b8 1c 00 00 00       	mov    $0x1c,%eax
+ 48d:	cd 30                	int    $0x30
+ 48f:	c3                   	ret    
 
 00000490 <putc>:
 #include "stat.h"

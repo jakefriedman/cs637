@@ -129,12 +129,10 @@ int
 checkf(struct file *f, int off)
 {
   int ret;
-  if(f->readable == 0)
-    return -1;
   if(f->type != FD_INODE)
     return -1;
   ilock(f->ip);
   ret = checki(f->ip, off);
-  iunlock(f->ip)
+  iunlock(f->ip);
   return ret;
 }

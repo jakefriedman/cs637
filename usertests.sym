@@ -17,7 +17,7 @@
 00000000 printf.c
 00002e80 putc
 00002eb0 printint
-0000443f digits.1230
+0000443f digits.1233
 00000000 umalloc.c
 00004488 freep
 00004480 base
@@ -45,6 +45,7 @@
 00002dd8 kill
 00000480 rmdot
 00002e18 chdir
+00002e78 check
 00002a40 exectest
 00002de0 exec
 00002db0 wait

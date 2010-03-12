@@ -1173,14 +1173,11 @@ gets(char *buf, int max)
  5f0:	b8 1b 00 00 00       	mov    $0x1b,%eax
  5f5:	cd 30                	int    $0x30
  5f7:	c3                   	ret    
- 5f8:	90                   	nop    
- 5f9:	90                   	nop    
- 5fa:	90                   	nop    
- 5fb:	90                   	nop    
- 5fc:	90                   	nop    
- 5fd:	90                   	nop    
- 5fe:	90                   	nop    
- 5ff:	90                   	nop    
+
+000005f8 <check>:
+ 5f8:	b8 1c 00 00 00       	mov    $0x1c,%eax
+ 5fd:	cd 30                	int    $0x30
+ 5ff:	c3                   	ret    
 
 00000600 <putc>:
 #include "stat.h"

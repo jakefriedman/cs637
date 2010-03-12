@@ -2496,14 +2496,11 @@ gets(char *buf, int max)
      f00:	b8 1b 00 00 00       	mov    $0x1b,%eax
      f05:	cd 30                	int    $0x30
      f07:	c3                   	ret    
-     f08:	90                   	nop    
-     f09:	90                   	nop    
-     f0a:	90                   	nop    
-     f0b:	90                   	nop    
-     f0c:	90                   	nop    
-     f0d:	90                   	nop    
-     f0e:	90                   	nop    
-     f0f:	90                   	nop    
+
+00000f08 <check>:
+     f08:	b8 1c 00 00 00       	mov    $0x1c,%eax
+     f0d:	cd 30                	int    $0x30
+     f0f:	c3                   	ret    
 
 00000f10 <putc>:
 #include "stat.h"

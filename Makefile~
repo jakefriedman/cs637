@@ -108,7 +108,7 @@ UPROGS=\
 	_sh\
 	_usertests\
 	_lt\
-	_condtest\
+	_cvtest\
 	_wc\
 	_zombie\
 

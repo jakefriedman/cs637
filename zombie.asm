@@ -616,14 +616,11 @@ gets(char *buf, int max)
  310:	b8 1b 00 00 00       	mov    $0x1b,%eax
  315:	cd 30                	int    $0x30
  317:	c3                   	ret    
- 318:	90                   	nop    
- 319:	90                   	nop    
- 31a:	90                   	nop    
- 31b:	90                   	nop    
- 31c:	90                   	nop    
- 31d:	90                   	nop    
- 31e:	90                   	nop    
- 31f:	90                   	nop    
+
+00000318 <check>:
+ 318:	b8 1c 00 00 00       	mov    $0x1c,%eax
+ 31d:	cd 30                	int    $0x30
+ 31f:	c3                   	ret    
 
 00000320 <putc>:
 #include "stat.h"

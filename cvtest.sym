@@ -17,7 +17,7 @@
 00000000 printf.c
 000006f0 putc
 00000720 printint
-00000a9d digits.1230
+00000a9d digits.1233
 00000000 umalloc.c
 00000ae0 freep
 00000ad8 base
@@ -46,6 +46,7 @@
 00000648 kill
 00000b04 mutex
 00000688 chdir
+000006e8 check
 00000650 exec
 00000620 wait
 00000000 cond_init

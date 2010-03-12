@@ -1299,14 +1299,11 @@ gets(char *buf, int max)
  6e0:	b8 1b 00 00 00       	mov    $0x1b,%eax
  6e5:	cd 30                	int    $0x30
  6e7:	c3                   	ret    
- 6e8:	90                   	nop    
- 6e9:	90                   	nop    
- 6ea:	90                   	nop    
- 6eb:	90                   	nop    
- 6ec:	90                   	nop    
- 6ed:	90                   	nop    
- 6ee:	90                   	nop    
- 6ef:	90                   	nop    
+
+000006e8 <check>:
+ 6e8:	b8 1c 00 00 00       	mov    $0x1c,%eax
+ 6ed:	cd 30                	int    $0x30
+ 6ef:	c3                   	ret    
 
 000006f0 <putc>:
 #include "stat.h"

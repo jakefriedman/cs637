@@ -400,5 +400,5 @@ sys_check(void)
   int offset;
   if (argfd(0, 0, &f) < 0 || argint(1, &offset) < 0)
     return -1;
-  return checkfd(f,offset);
+  return checkf(f,offset);
 }

@@ -926,14 +926,11 @@ gets(char *buf, int max)
  4d0:	b8 1b 00 00 00       	mov    $0x1b,%eax
  4d5:	cd 30                	int    $0x30
  4d7:	c3                   	ret    
- 4d8:	90                   	nop    
- 4d9:	90                   	nop    
- 4da:	90                   	nop    
- 4db:	90                   	nop    
- 4dc:	90                   	nop    
- 4dd:	90                   	nop    
- 4de:	90                   	nop    
- 4df:	90                   	nop    
+
+000004d8 <check>:
+ 4d8:	b8 1c 00 00 00       	mov    $0x1c,%eax
+ 4dd:	cd 30                	int    $0x30
+ 4df:	c3                   	ret    
 
 000004e0 <putc>:
 #include "stat.h"
