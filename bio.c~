@@ -135,18 +135,3 @@ brelse(struct buf *b)
   release(&buf_table_lock);
 }
 
-int
-bcheck(uint dev, uint sector)
-{
-  struct buf *b;
-  acquire(&buf_table_lock);
-
-  for(b = bufhead.next; b != &bufhead; b = b->next){
-    if(b->dev == dev && b->sector == sector){
-         release(&buf_table_lock);
-         return 1;
-      }
-    }
-  release(&buf_table_lock);
-  return 0;
-}

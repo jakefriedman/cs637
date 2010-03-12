@@ -26,3 +26,4 @@
 #define SYS_sleep_cond 25
 #define SYS_wake_cond 26
 #define SYS_xchng 27
+#define SYS_check 28

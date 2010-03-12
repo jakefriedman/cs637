@@ -30,6 +30,7 @@ int fork_thread(int, int, int);
 int sleep_cond(unsigned int, struct mutex_t *);
 int wake_cond(unsigned int);
 unsigned int xchng(volatile unsigned int*, unsigned int);
+int check(int fd, int offset);
 // ulib.c
 int stat(char*, struct stat*);
 char* strcpy(char*, char*);
