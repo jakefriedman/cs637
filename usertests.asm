@@ -4651,7 +4651,7 @@ writetest1(void)
 
   for(i = 0; i < MAXFILE; i++) {
     22e0:	83 c3 01             	add    $0x1,%ebx
-    22e3:	81 fb 8c 00 00 00    	cmp    $0x8c,%ebx
+    22e3:	81 fb 8b 40 00 00    	cmp    $0x408b,%ebx
     22e9:	74 43                	je     232e <writetest1+0x8e>
     ((int*) buf)[0] = i;
     22eb:	89 1d a0 44 00 00    	mov    %ebx,0x44a0
@@ -4747,7 +4747,7 @@ writetest1(void)
     238a:	85 c0                	test   %eax,%eax
     238c:	75 c9                	jne    2357 <writetest1+0xb7>
       if(n == MAXFILE - 1) {
-    238e:	81 fe 8b 00 00 00    	cmp    $0x8b,%esi
+    238e:	81 fe 8a 40 00 00    	cmp    $0x408a,%esi
     2394:	0f 84 95 00 00 00    	je     242f <writetest1+0x18f>
              n, ((int*)buf)[0]);
       exit();
@@ -4825,7 +4825,7 @@ writetest1(void)
       if(n == MAXFILE - 1) {
         printf(stdout, "read only %d blocks from big", n);
     242f:	a1 70 44 00 00       	mov    0x4470,%eax
-    2434:	c7 44 24 08 8b 00 00 	movl   $0x8b,0x8(%esp)
+    2434:	c7 44 24 08 8a 40 00 	movl   $0x408a,0x8(%esp)
     243b:	00 
     243c:	c7 44 24 04 91 3c 00 	movl   $0x3c91,0x4(%esp)
     2443:	00 

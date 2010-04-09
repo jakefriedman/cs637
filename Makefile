@@ -98,6 +98,8 @@ UPROGS=\
 	_cat\
 	_echo\
 	_forktest\
+	_fstest\
+	_fstest2\
 	_grep\
 	_init\
 	_kill\

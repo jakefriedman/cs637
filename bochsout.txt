@@ -35,7 +35,7 @@
 00000000000i[MEM0 ] rom at 0xfffe0000/131072 ('/usr/local/share/bochs/BIOS-bochs-latest')
 00000000000i[MEM0 ] rom at 0xc0000/40448 ('/usr/local/share/bochs/VGABIOS-lgpl-latest')
 00000000000i[CMOS ] Using local time for initial clock
-00000000000i[CMOS ] Setting initial clock to: Fri Mar 12 14:45:44 2010 (time0=1268426744)
+00000000000i[CMOS ] Setting initial clock to: Thu Apr  8 20:52:12 2010 (time0=1270777932)
 00000000000i[DMA  ] channel 4 used by cascade
 00000000000i[DMA  ] channel 2 used by Floppy Drive
 00000000000i[FDD  ] tried to open '/dev/fd0' read/write: No such file or directory
@@ -58,7 +58,7 @@
 00000000000i[HD   ] HD on ata0-0: 'xv6.img' 'flat' mode 
 00000000000i[HD   ] HD on ata0-1: 'fs.img' 'flat' mode 
 00000000000i[HD   ] translation on ata0-0 set to 'none'
-00000000000i[HD   ] translation on ata0-1 set to 'none'
+00000000000i[HD   ] translation on ata0-1 set to 'large'
 00000000000i[HD   ] Using boot sequence disk, none, none
 00000000000i[HD   ] Floppy boot signature check is enabled
 00000000000i[     ] init_dev of 'serial' plugin device by virtual method
@@ -98,28 +98,29 @@
 00000794626i[BIOS ] MP table addr=0x000fbb70 MPC table addr=0x000fbaa0 size=0xd0
 00000796470i[BIOS ] SMBIOS table addr=0x000fbb80
 00000797353i[BIOS ] bios_table_cur_addr: 0x000fbc84
-00000809872i[BIOS ] ata0-0: PCHS=100/10/10 translation=none LCHS=100/10/10
-00000868023i[BIOS ] ata0-1: PCHS=1024/1/1 translation=none LCHS=1024/1/1
+00000809951i[BIOS ] ata0-0: PCHS=100/10/10 translation=none LCHS=100/10/10
+00000868383i[BIOS ] ata0-1: PCHS=16383/1/1 translation=large LCHS=1023/16/1
 00003000000i[XGUI ] charmap update. Font Height is 16
 00030787405i[BIOS ] Booting from 0000:7c00
-00284470000p[XGUI ] >>PANIC<< POWER button turned off.
-00284470000i[CPU0 ] CPU is in protected mode (active)
-00284470000i[CPU0 ] CS.d_b = 32 bit
-00284470000i[CPU0 ] SS.d_b = 32 bit
-00284470000i[CPU0 ] | EAX=0000233c  EBX=00000000  ECX=0000000a  EDX=00000000
-00284470000i[CPU0 ] | ESP=00007b60  EBP=00007b88  ESI=0010d99c  EDI=0000002d
-00284470000i[CPU0 ] | IOPL=0 id vip vif ac vm rf nt of df if tf SF zf AF pf CF
-00284470000i[CPU0 ] | SEG selector     base    limit G D
-00284470000i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
-00284470000i[CPU0 ] |  CS:0008( 0001| 0|  0) 00000000 0010ffff 1 1
-00284470000i[CPU0 ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00284470000i[CPU0 ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00284470000i[CPU0 ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00284470000i[CPU0 ] |  FS:0000( 0002| 0|  0) 00000000 ffffffff 1 1
-00284470000i[CPU0 ] |  GS:0000( 0002| 0|  0) 00000000 ffffffff 1 1
-00284470000i[CPU0 ] | EIP=00103cb2 (00103cb2)
-00284470000i[CPU0 ] | CR0=0x60000011 CR2=0x00000000
-00284470000i[CPU0 ] | CR3=0x00000000 CR4=0x00000000
-00284470000i[CMOS ] Last time is 1268426772 (Fri Mar 12 14:46:12 2010)
-00284470000i[XGUI ] Exit
-00284470000i[CTRL ] quit_sim called with exit code 1
+00212833101e[CPU0 ] read_virtual_checks(): read beyond limit
+00540250000p[XGUI ] >>PANIC<< POWER button turned off.
+00540250000i[CPU0 ] CPU is in protected mode (active)
+00540250000i[CPU0 ] CS.d_b = 32 bit
+00540250000i[CPU0 ] SS.d_b = 32 bit
+00540250000i[CPU0 ] | EAX=00000000  EBX=0010c9a4  ECX=0000000a  EDX=00000000
+00540250000i[CPU0 ] | ESP=00007b60  EBP=00007b88  ESI=0010c998  EDI=00000025
+00540250000i[CPU0 ] | IOPL=0 id vip vif ac vm rf nt of df if tf SF zf AF pf CF
+00540250000i[CPU0 ] | SEG selector     base    limit G D
+00540250000i[CPU0 ] | SEG sltr(index|ti|rpl)     base    limit G D
+00540250000i[CPU0 ] |  CS:0008( 0001| 0|  0) 00000000 0010ffff 1 1
+00540250000i[CPU0 ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00540250000i[CPU0 ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00540250000i[CPU0 ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00540250000i[CPU0 ] |  FS:0000( 0002| 0|  0) 00000000 ffffffff 1 1
+00540250000i[CPU0 ] |  GS:0000( 0002| 0|  0) 00000000 ffffffff 1 1
+00540250000i[CPU0 ] | EIP=00103dc6 (00103dc6)
+00540250000i[CPU0 ] | CR0=0x60000011 CR2=0x00000000
+00540250000i[CPU0 ] | CR3=0x00000000 CR4=0x00000000
+00540250000i[CMOS ] Last time is 1270777986 (Thu Apr  8 20:53:06 2010)
+00540250000i[XGUI ] Exit
+00540250000i[CTRL ] quit_sim called with exit code 1

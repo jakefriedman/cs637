@@ -14,11 +14,13 @@ struct superblock {
   uint ninodes;      // Number of inodes.
 };
 
-#define NADDRS (NDIRECT+1)
-#define NDIRECT 12
-#define INDIRECT 12
+#define NADDRS (NDIRECT+2)
+#define NDIRECT 11
+#define INDIRECT 11
+#define DBLINDIRECT 12
 #define NINDIRECT (BSIZE / sizeof(uint))
-#define MAXFILE (NDIRECT  + NINDIRECT)
+#define NDBLINDIRECT (BSIZE / sizeof(uint) * BSIZE / sizeof(uint))
+#define MAXFILE (NDIRECT  + NINDIRECT + NDBLINDIRECT)
 
 // On-disk inode structure
 struct dinode {

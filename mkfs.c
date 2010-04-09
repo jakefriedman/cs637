@@ -1,15 +1,15 @@
+#include "types.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <assert.h>
-#include "types.h"
 #include "fs.h"
 
-int nblocks = 995;
-int ninodes = 200;
-int size = 1024;
+int nblocks = 31956;
+int ninodes = 6400;
+int size = 32768;
 
 int fsfd;
 struct superblock sb;

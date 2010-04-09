@@ -623,5 +623,5 @@ checki(struct inode * ip, int off)
 {
   if(ip->size < off)
 	return 0;
-  return bcheck(ip->dev, bmap(ip, off/BSIZE, 0);
+  return bcheck(ip->dev, bmap(ip, off/BSIZE, 0));
 }

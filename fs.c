@@ -338,7 +338,7 @@ bmap(struct inode *ip, uint bn, int alloc)
         return -1;
       ip->addrs[INDIRECT] = addr = balloc(ip->dev);
     }
-    bp = bread(ip->dev, addr);
+    bp = bread(ip->dev, addr); //indirect block pointer - buffer
     a = (uint*)bp->data;
   
     if((addr = a[bn]) == 0){
@@ -353,6 +353,42 @@ bmap(struct inode *ip, uint bn, int alloc)
     return addr;
   }
 
+  bn -= NINDIRECT;
+
+  if(bn < NDBLINDIRECT) {
+    if((addr = ip->addrs[DBLINDIRECT]) == 0) {
+	if(!alloc)
+	  return -1;
+	ip->addrs[DBLINDIRECT] = addr = balloc(ip->dev);
+      }
+      bp = bread(ip->dev, addr); //indirect block pointer - buffer
+      a = (uint*)bp->data;
+
+      int block_index = bn / NINDIRECT;
+      int index_in_block = bn % NINDIRECT;
+      if((addr = a[block_index]) == 0) {
+	if(!alloc) {
+	  brelse(bp);
+	  return -1;
+	}
+	a[block_index] = addr = balloc(ip->dev);
+	bwrite(bp);
+      }
+      bp = bread(ip->dev, addr); //indirect block pointer - buffer
+      a = (uint*)bp->data;
+
+      if((addr = a[index_in_block]) == 0){
+	if(!alloc){
+	  brelse(bp);
+	  return -1;
+	}
+	a[index_in_block] = addr = balloc(ip->dev);
+	bwrite(bp);
+      }
+
+      brelse(bp);
+      return addr;
+  }
   panic("bmap: out of range");
 }
 
