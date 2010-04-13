@@ -24,7 +24,10 @@
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 static void itrunc(struct inode*);
-
+static struct inode* jp;
+static int journ = 0;
+static int journal_offset = 0;
+static final int journsz = 5;
 // Read the super block.
 static void
 readsb(int dev, struct superblock *sb)
@@ -483,9 +486,11 @@ readi(struct inode *ip, char *dst, uint off, uint n)
   return n;
 }
 
-// Write data to inode.
+
+
+// Write data to inode - disk.
 int
-writei(struct inode *ip, char *src, uint off, uint n)
+writed(struct inode *ip, char *src, uint off, uint n)
 {
   uint tot, m;
   struct buf *bp;
@@ -495,7 +500,6 @@ writei(struct inode *ip, char *src, uint off, uint n)
       return -1;
     return devsw[ip->major].write(ip, src, n);
   }
-
   if(off + n < off)
     return -1;
   if(off + n > MAXFILE*BSIZE)
@@ -512,6 +516,76 @@ writei(struct inode *ip, char *src, uint off, uint n)
   if(n > 0 && off > ip->size){
     ip->size = off;
     iupdate(ip);
+  }
+  return n;
+}
+
+//write to journal
+int
+writei(struct inode *ip, char *src, uint off, uint n)
+{
+  uint tot, m;
+  struct buf *bp, *beginbuf, *ibuf;
+
+  if(ip->type == T_DEV){
+    if(ip->major < 0 || ip->major >= NDEV || !devsw[ip->major].write)
+      return -1;
+    return devsw[ip->major].write(ip, src, n);
+  }
+
+if(journ == 0) {
+jorun = 1;
+jp = fscreate("journal", 1, T_FILE, 0, 0);
+}
+//bread ibuf beginbuf
+beginbuf->dev = jp->dev;
+beginbuf->sector = bmap(jp, journal_offset/BSIZE, 1); 
+journal_offset += BSIZE;
+ibuf->dev = jp->dev;
+ibuf->sector =  bmap(jp, journal_offset/BSIZE, 1));
+struct begin_block *beginblock = kalloc(sizeof(struct begin_block));
+uint* k = beginblock;
+beginblock->identifier = "begin block";
+beginblock->size = n;
+beginblock->status = 0;
+int i;
+for(i = 0; i < (sizeof(struct begin_block)); i++) {
+	beginbuf->data[i] = k[i];
+}
+for(i = sizeof(stuct begin_block); i < 512; i++) {
+beginbuf->data[i] = '0';
+} 
+k = ip;
+for(i = 0; i < (sizeof(struct inode)); i++) {
+	ibuf->data[i] = k[i];
+}
+for(i = sizeof(stuct inode); i < 512; i++) {
+	ibuf->data[i] = '0';
+}
+
+bwrite(beginbuf);
+bwrite(ibuf); 
+//use journal offset for initial bread
+//write ibuf and beginbuf
+
+
+//write all to journal
+
+  if(off + n < off)
+    return -1;
+  if(off + n > MAXFILE*BSIZE)
+    n = MAXFILE*BSIZE - off;
+
+  for(tot=0; tot<n; tot+=m, off+=m, src+=m){
+    bp = bread(ip->dev, bmap(ip, off/BSIZE, 1));
+    m = min(n - tot, BSIZE - off%BSIZE);
+    memmove(bp->data + off%BSIZE, src, m);
+    bwrite(bp);
+    brelse(bp);
+  }
+
+  if(n > 0 && off > ip->size){
+    ip->size = off;
   }
   return n;
 }
@@ -684,3 +758,59 @@ checki(struct inode * ip, int off)
 	return 0;
   return bcheck(ip->dev, bmap(ip, off/BSIZE, 0));
 }
+
+
+
+
+
+
+
+static struct inode*
+fscreate(char *path, int canexist, short type, short major, short minor)
+{
+  uint off;
+  struct inode *ip, *dp;
+  char name[DIRSIZ];
+
+  if((dp = nameiparent(path, name)) == 0)
+    return 0;
+  ilock(dp);
+
+  if(canexist && (ip = dirlookup(dp, name, &off)) != 0){
+    iunlockput(dp);
+    ilock(ip);
+    if(ip->type != type || ip->major != major || ip->minor != minor){
+      iunlockput(ip);
+      return 0;
+    }
+    return ip;
+  }
+
+  if((ip = ialloc(dp->dev, type)) == 0){
+    iunlockput(dp);
+    return 0;
+  }
+  ilock(ip);
+  ip->major = major;
+  ip->minor = minor;
+  ip->nlink = 1;
+  iupdate(ip);
+  
+  if(dirlink(dp, name, ip->inum) < 0){
+    ip->nlink = 0;
+    iunlockput(ip);
+    iunlockput(dp);
+    return 0;
+  }
+
+  if(type == T_DIR){  // Create . and .. entries.
+    dp->nlink++;  // for ".."
+    iupdate(dp);
+    // No ip->nlink++ for ".": avoid cyclic ref count.
+    if(dirlink(ip, ".", ip->inum) < 0 || dirlink(ip, "..", dp->inum) < 0)
+      panic("create dots");
+  }
+  iunlockput(dp);
+  return ip;
+}
+

@@ -32,6 +32,13 @@ struct dinode {
   uint addrs[NADDRS];   // Data block addresses
 };
 
+// Identifier makes sure this is a begin block, size keeps the size, status = 0 unallocated, 1 is written, and 2 freeable.
+struct begin_block {
+  char* identifier;
+  uint size;
+  uint status;
+}
+
 #define T_DIR  1   // Directory
 #define T_FILE 2   // File
 #define T_DEV  3   // Special device

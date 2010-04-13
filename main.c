@@ -53,6 +53,7 @@ mpmain(void)
   xchg(&cpus[cpu()].booted, 1);
 
   cprintf("cpu%d: scheduling\n", cpu());
+  int fd = sys_open("journal", O_CREATE | O_RDWR);
   scheduler();
 }
 
