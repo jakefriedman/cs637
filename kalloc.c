@@ -44,14 +44,15 @@ kinit(void)
 void
 kfree(char *v, int len)
 {
+  cprintf("kfreeing\n");
   struct run *r, *rend, **rp, *p, *pend;
 
   if(len <= 0 || len % PAGE)
     panic("kfree");
-
+  //cprintf("kfreeing\n");
   // Fill with junk to catch dangling refs.
   memset(v, 1, len);
-
+  //cprintf("kfreeing\n");
   acquire(&kalloc_lock);
   p = (struct run*)v;
   pend = (struct run*)(v + len);
@@ -93,8 +94,8 @@ kalloc(int n)
   struct run *r, **rp;
 
   if(n % PAGE || n <= 0)
-    panic("kalloc");
-
+{cprintf("kalloc is about to flip a bitch\n");    panic("kalloc");
+}
   acquire(&kalloc_lock);
   for(rp=&freelist; (r=*rp) != 0; rp=&r->next){
     if(r->len == n){

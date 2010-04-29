@@ -31,6 +31,7 @@ main(void)
   iinit();         // inode cache
   console_init();  // I/O devices & their interrupts
   ide_init();      // disk
+
   if(!ismp)
     timer_init();  // uniprocessor timer
   userinit();      // first user process
@@ -53,7 +54,7 @@ mpmain(void)
   xchg(&cpus[cpu()].booted, 1);
 
   cprintf("cpu%d: scheduling\n", cpu());
-  int fd = sys_open("journal", O_CREATE | O_RDWR);
+
   scheduler();
 }
 

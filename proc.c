@@ -322,8 +322,6 @@ scheduler(void)
   struct proc *p;
   struct cpu *c;
   int i;
-  int total_tix;     	//total number of tickets of all processes
-  int ticket;
 
   c = &cpus[cpu()];
   for(;;){
@@ -332,13 +330,16 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&proc_table_lock);
-	
-	if((proc[0].pid == 1) && (proc[0].state == RUNNABLE)){
-		  p = &proc[0];
-			//cprintf("init\n");
-		  c->curproc = p;
+    for(i = 0; i < NPROC; i++){
+      p = &proc[i];
+      if(p->state != RUNNABLE)
+        continue;
+
+      // Switch to chosen process.  It is the process's job
+      // to release proc_table_lock and then reacquire it
+      // before jumping back to us.
+      c->curproc = p;
       setupsegs(p);
-      p->num_tix = 75;
       p->state = RUNNING;
       swtch(&c->context, &p->context);
 
@@ -346,55 +347,9 @@ scheduler(void)
       // It should have changed its p->state before coming back.
       c->curproc = 0;
       setupsegs(0);
-      release(&proc_table_lock);
-	}else{
-		// loop over process table and count number of tickets
-		total_tix = 0;
-		//cprintf("----LOOPING THROUGH PROCCESS TABLE---\n");
-		for(i = 0; i < NPROC; i++){
-			p = &proc[i];	
-			//cprintf("process pid: %d\n", p->pid);
-			//if(p->state == RUNNABLE)
-			//	cprintf("process is RUNNABLE\n");
-			//else
-			//	cprintf("process is in state %d\n", p->state); 
-			if(p->state == RUNNABLE){				        //if process is runnable
-				total_tix = total_tix + p->num_tix;   //update total num of tickets
-			}
-		}
-		//cprintf("number of tickets: %d\n", total_tix);
-		if(total_tix != 0)
-			ticket = (tick() * 256)%total_tix;   //get our lucky winner
-		//cprintf("winning ticket is %d\n", ticket);
-		total_tix = 0;  					   //now total will hold the ticket numbers we've seen so far
-		//find the process that corresponds to this ticket
-	  for(i = 0; i < NPROC; i++){
-	  p = &proc[i];	
-	  if(p->state == RUNNABLE){				        //if process is runnable
-			total_tix = total_tix + p->num_tix;   //update total num of tickets
-	  }
-	  //cprintf("here\n");
-		if(total_tix > ticket){
-	
-    	  // Switch to chosen process.  It is the process's job
-    	  // to release proc_table_lock and then reacquire it
-    	  // before jumping back to us.
-    	  //cprintf("pid of picked process is %d\n", p->pid);
-    	  c->curproc = p;
-    	  setupsegs(p);
-    	  p->state = RUNNING;
-    	  swtch(&c->context, &p->context);
-	
-				//cprintf("process is now in state %d\n", p->state);
-    	  // Process is done running for now.
-    	  // It should have changed its p->state before coming back.
-    	  c->curproc = 0;
-    	  setupsegs(0);
-    	  break; 
-    	}
-    	}
-    	release(&proc_table_lock);
-		}
+    }
+    release(&proc_table_lock);
+
   }
 }
 

@@ -14,6 +14,7 @@ void            binit(void);
 struct buf*     bread(uint, uint);
 void            brelse(struct buf*);
 void            bwrite(struct buf*);
+struct buf*     bget(uint, uint);
 
 // console.c
 void            console_init(void);
@@ -109,6 +110,7 @@ void            wakeup(void*);
 void            yield(void);
 void		sleepcond(unsigned int, struct mutex_t *);
 int		wakecond(unsigned int);
+unsigned int    xchnge(volatile unsigned int *, unsigned int);
 
 
 // swtch.S

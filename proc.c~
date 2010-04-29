@@ -324,7 +324,7 @@ scheduler(void)
   int i;
   int total_tix;     	//total number of tickets of all processes
   int ticket;
-
+  cprintf("in scheduler\n");
   c = &cpus[cpu()];
   for(;;){
     // Enable interrupts on this processor.
@@ -338,9 +338,11 @@ scheduler(void)
 			//cprintf("init\n");
 		  c->curproc = p;
       setupsegs(p);
+        cprintf("in scheduler, about to swtch\n");
       p->num_tix = 75;
       p->state = RUNNING;
       swtch(&c->context, &p->context);
+      //  cprintf("in scheduler, swtch done\n");
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
@@ -753,7 +755,7 @@ if(done)
 {
  return p->pid;
 }
-cprintf("none found\n");	 
+//cprintf("none found\n");	 
      return -1;
 
 }
