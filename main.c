@@ -5,8 +5,11 @@
 #include "proc.h"
 #include "x86.h"
 
+
 static void bootothers(void);
 static void mpmain(void) __attribute__((noreturn));
+
+
 
 // Bootstrap processor starts running C code here.
 int
@@ -31,12 +34,12 @@ main(void)
   iinit();         // inode cache
   console_init();  // I/O devices & their interrupts
   ide_init();      // disk
-
   if(!ismp)
     timer_init();  // uniprocessor timer
   userinit();      // first user process
   bootothers();    // start other processors
-
+  
+ // kalloctest();    //test kalloc(bytes)
   // Finish setting up this processor in mpmain.
   mpmain();
 }
@@ -54,7 +57,6 @@ mpmain(void)
   xchg(&cpus[cpu()].booted, 1);
 
   cprintf("cpu%d: scheduling\n", cpu());
-
   scheduler();
 }
 
@@ -85,4 +87,6 @@ bootothers(void)
       ;
   }
 }
+
+
 

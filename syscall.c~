@@ -96,43 +96,28 @@ extern int sys_sleep(void);
 extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
-extern int sys_tick(void);
-extern int sys_fork_tickets(void);
-extern int sys_fork_thread(void);
-extern int sys_wait_thread(void);
-extern int sys_sleep_cond(void);
-extern int sys_wake_cond(void);
-extern int sys_xchng(void);
-extern int sys_check(void);
 
 static int (*syscalls[])(void) = {
-[SYS_chdir]   		sys_chdir,
-[SYS_close]   		sys_close,
-[SYS_dup]     		sys_dup,
-[SYS_exec]    		sys_exec,
-[SYS_exit]    		sys_exit,
-[SYS_fork]    		sys_fork,
-[SYS_fstat]   		sys_fstat,
-[SYS_getpid]  		sys_getpid,
-[SYS_kill]    		sys_kill,
-[SYS_link]    		sys_link,
-[SYS_mkdir]   		sys_mkdir,
-[SYS_mknod]   		sys_mknod,
-[SYS_open]  		sys_open,
-[SYS_pipe]  		sys_pipe,
-[SYS_read]  		sys_read,
-[SYS_sbrk]   		sys_sbrk,
-[SYS_sleep]   		sys_sleep,
-[SYS_unlink] 		sys_unlink,
-[SYS_wait]    		sys_wait,
-[SYS_write]   		sys_write,
-[SYS_tick]    		sys_tick,
-[SYS_fork_tickets]   	sys_fork_tickets,
-[SYS_fork_thread]	sys_fork_thread,
-[SYS_wait_thread] 	sys_wait_thread,
-[SYS_sleep_cond]	sys_sleep_cond,
-[SYS_wake_cond]		sys_wake_cond,
-[SYS_xchng]		sys_xchng,
+[SYS_chdir]   sys_chdir,
+[SYS_close]   sys_close,
+[SYS_dup]     sys_dup,
+[SYS_exec]    sys_exec,
+[SYS_exit]    sys_exit,
+[SYS_fork]    sys_fork,
+[SYS_fstat]   sys_fstat,
+[SYS_getpid]  sys_getpid,
+[SYS_kill]    sys_kill,
+[SYS_link]    sys_link,
+[SYS_mkdir]   sys_mkdir,
+[SYS_mknod]   sys_mknod,
+[SYS_open]    sys_open,
+[SYS_pipe]    sys_pipe,
+[SYS_read]    sys_read,
+[SYS_sbrk]    sys_sbrk,
+[SYS_sleep]   sys_sleep,
+[SYS_unlink]  sys_unlink,
+[SYS_wait]    sys_wait,
+[SYS_write]   sys_write,
 };
 
 void

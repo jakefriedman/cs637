@@ -3,38 +3,6 @@
 #include "param.h"
 #include "mmu.h"
 #include "proc.h"
-//#include "thread.h"
-struct mutex_t;
-
-int
-sys_sleep_cond(void) {
-  uint c;
-  int m;
-  pushcli(); //release in proc.c
-  if((argint(0, &c) < 0) || (argint(1, &m) < 0))
-{
-popcli();
-     return -1;
-} 
-struct mutex_t * mut = (struct mutex_t *) m;
-  sleepcond(c,mut);
-  return 0;
-}
-
-int
-sys_wake_cond(void) {
-  int c;
-  pushcli();
-  if(argint(0, &c) < 0)
-{
-popcli();    
-return -1;
-}
-  int pid = wakecond(c);
-  popcli();
-//cprintf("almost back!\n");
-  return pid;
-}
 
 int
 sys_fork(void)
@@ -50,57 +18,10 @@ sys_fork(void)
 }
 
 int
-sys_fork_thread(void)
-{
-  int pid;
-  int stack;
-  int addrspace;
-  int routine;
-  int args;
-  struct proc *np;
-
- if(argint(0, &stack) < 0 || argint(1, &routine) < 0 || argint(2, &args) < 0)
-    return -1;
-
-  if((np = copyproc_threads(cp, (int)stack, (int)routine, (int)args)) == 0){
-    return -2;
-   }
-
-  np->state = RUNNABLE;
-  pid = np->pid;
-  return pid;
-}
-
-int
-sys_fork_tickets(void)
-{
-  int pid;
-  int numTix;
-  struct proc *np;
-
-  if(argint(0, &numTix) < 0)
-    return -1;
-
-  if((np = copyproc_tix(cp, numTix)) == 0)
-    return -1;
-  pid = np->pid;
-  np->state = RUNNABLE;
-  np->num_tix = numTix;
-  return pid;
-}
-
-int
 sys_exit(void)
 {
   exit();
-}
-
-
-
-int
-sys_wait_thread(void)
-{
-  return wait_thread();
+  return 0;  // not reached
 }
 
 int
@@ -158,21 +79,63 @@ sys_sleep(void)
   return 0;
 }
 
+struct ktest{
+	int number;
+		struct ktest * nextk;
+};
+
 int
-sys_tick(void)
+sys_kalloctest(void)
 {
-return ticks;
+   int sz1, sz2, sz3, sz4;
+  struct ktest * ktst;
+  struct ktest * ktst1;
+  struct ktest * ktst2;
+  sz1 = 15;
+  sz2 = 27;
+  sz3 = 45;
+  sz4 = 8898970;
+  
+   cprintf("Kallocing test %d\n", sz1);
+   char * test = kalloc(sz1);
+   memset(test,0, sz1);
+   cprintf("address ret %x\n", test);
+   int k;
+   for(k = 0; k < 16; k++)
+{
+	test[k] = 'a';
+	cprintf("contents of test at %d: %s \n", k,test);
 }
 
-uint
-sys_xchng(void)
-{
-  volatile unsigned int mem;
-  unsigned int new; 
-  if(argint(0, &mem) < 0)
-    return -1;
-  if(argint(1, &new) < 0)
-    return -1;
-  volatile unsigned int * p = &mem;
-  return xchnge(p, new);
+cprintf("Kallocing space for 3 ktest structs: %d bytes\n", sizeof(struct ktest)*3);
+
+ktst = kalloc(sizeof(struct ktest));
+ktst1 = kalloc(sizeof(struct ktest));
+ktst2 = kalloc(sizeof(struct ktest));
+
+ktst->number = sz2;
+ktst1->number = sz3;
+ktst2->number = sz4;
+ktst->nextk = ktst1;
+ktst1->nextk = ktst2;
+ktst2->nextk = ktst;
+
+cprintf("addresses: ktst - %x, ktst1 - %x, ktst2 - %x\n", ktst, ktst1, ktst2);
+cprintf("ktst data: num - %d, ptr - %x\n",ktst->number, ktst->nextk);
+cprintf("ktst1 data: num - %d, ptr - %x\n",ktst1->number, ktst1->nextk);
+cprintf("ktst2 data: num - %d, ptr - %x\n",ktst2->number, ktst2->nextk);
+
+cprintf("freeing everything\n");
+cprintf("kfree test\n");
+kfree(test, sz1);
+cprintf("kfree ktst1\n");
+kfree(ktst1, sizeof(struct ktest));
+cprintf("kfree ktst2\n");
+kfree(ktst2, sizeof(struct ktest));
+cprintf("kfree ktst\n");
+kfree(ktst, sizeof(struct ktest));
+
+cprintf("THAT'S ALL FOLKS!\n");
+return 0;
 }
+

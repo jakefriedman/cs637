@@ -1,15 +1,15 @@
-#include "types.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <assert.h>
+#include "types.h"
 #include "fs.h"
 
-int nblocks = 31956;
-int ninodes = 6400;
-int size = 32768;
+int nblocks = 995;
+int ninodes = 200;
+int size = 1024;
 
 int fsfd;
 struct superblock sb;
@@ -224,7 +224,7 @@ balloc(int used)
   int i;
 
   printf("balloc: first %d blocks have been allocated\n", used);
-  //assert(used < 512);
+  assert(used < 512);
   bzero(buf, 512);
   for(i = 0; i < used; i++) {
     buf[i/8] = buf[i/8] | (0x1 << (i%8));

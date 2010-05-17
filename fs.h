@@ -7,15 +7,6 @@
 
 #define BSIZE 512  // block size
 
-struct begin_block {
-	char identifier;
-	uint size;
-	uint indirect;
-	uint sector[50];
-	uint nblocks;
-};
-
-
 // File system super block
 struct superblock {
   uint size;         // Size of file system image (blocks)

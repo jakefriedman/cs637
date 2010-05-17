@@ -392,13 +392,3 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
-
-int
-sys_check(void)
-{
-  struct file * f;
-  int offset;
-  if (argfd(0, 0, &f) < 0 || argint(1, &offset) < 0)
-    return -1;
-  return checkf(f,offset);
-}

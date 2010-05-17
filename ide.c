@@ -139,7 +139,7 @@ ide_rw(struct buf *b)
   
   // Start disk if necessary.
   if(ide_queue == b)
-    ide_start_request(b); //starts write to disk
+    ide_start_request(b);
   
   // Wait for request to finish.
   // Assuming will not sleep too long: ignore cp->killed.

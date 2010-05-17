@@ -98,8 +98,6 @@ UPROGS=\
 	_cat\
 	_echo\
 	_forktest\
-	_fstest\
-	_fstest2\
 	_grep\
 	_init\
 	_kill\
@@ -109,11 +107,9 @@ UPROGS=\
 	_rm\
 	_sh\
 	_usertests\
-	_lt\
-	_cvtest\
-	_chktest\
 	_wc\
 	_zombie\
+	_ktest\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

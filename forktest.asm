@@ -53,7 +53,7 @@ forktest(void)
   int n, pid;
 
   printf(1, "fork test\n");
-  39:	c7 44 24 04 10 04 00 	movl   $0x410,0x4(%esp)
+  39:	c7 44 24 04 d8 03 00 	movl   $0x3d8,0x4(%esp)
   40:	00 
   41:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   48:	e8 b3 ff ff ff       	call   0 <printf>
@@ -118,7 +118,7 @@ forktest(void)
   }
   
   printf(1, "fork test OK\n");
-  8c:	c7 44 24 04 42 04 00 	movl   $0x442,0x4(%esp)
+  8c:	c7 44 24 04 0a 04 00 	movl   $0x40a,0x4(%esp)
   93:	00 
   94:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   9b:	e8 60 ff ff ff       	call   0 <printf>
@@ -133,7 +133,7 @@ forktest(void)
   for(; n > 0; n--){
     if(wait() < 0){
       printf(1, "wait stopped early\n");
-  a6:	c7 44 24 04 1b 04 00 	movl   $0x41b,0x4(%esp)
+  a6:	c7 44 24 04 e3 03 00 	movl   $0x3e3,0x4(%esp)
   ad:	00 
   ae:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   b5:	e8 46 ff ff ff       	call   0 <printf>
@@ -145,7 +145,7 @@ forktest(void)
   
   if(n == 1000){
     printf(1, "fork claimed to work 1000 times!\n");
-  bf:	c7 44 24 04 50 04 00 	movl   $0x450,0x4(%esp)
+  bf:	c7 44 24 04 18 04 00 	movl   $0x418,0x4(%esp)
   c6:	00 
   c7:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   ce:	e8 2d ff ff ff       	call   0 <printf>
@@ -161,7 +161,7 @@ forktest(void)
   
   if(wait() != -1){
     printf(1, "wait got too many\n");
-  d8:	c7 44 24 04 2f 04 00 	movl   $0x42f,0x4(%esp)
+  d8:	c7 44 24 04 f7 03 00 	movl   $0x3f7,0x4(%esp)
   df:	00 
   e0:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
   e7:	e8 14 ff ff ff       	call   0 <printf>
@@ -756,42 +756,7 @@ gets(char *buf, int max)
  3cd:	cd 30                	int    $0x30
  3cf:	c3                   	ret    
 
-000003d0 <tick>:
+000003d0 <kalloctest>:
  3d0:	b8 15 00 00 00       	mov    $0x15,%eax
  3d5:	cd 30                	int    $0x30
  3d7:	c3                   	ret    
-
-000003d8 <fork_tickets>:
- 3d8:	b8 16 00 00 00       	mov    $0x16,%eax
- 3dd:	cd 30                	int    $0x30
- 3df:	c3                   	ret    
-
-000003e0 <fork_thread>:
- 3e0:	b8 17 00 00 00       	mov    $0x17,%eax
- 3e5:	cd 30                	int    $0x30
- 3e7:	c3                   	ret    
-
-000003e8 <wait_thread>:
- 3e8:	b8 18 00 00 00       	mov    $0x18,%eax
- 3ed:	cd 30                	int    $0x30
- 3ef:	c3                   	ret    
-
-000003f0 <sleep_cond>:
- 3f0:	b8 19 00 00 00       	mov    $0x19,%eax
- 3f5:	cd 30                	int    $0x30
- 3f7:	c3                   	ret    
-
-000003f8 <wake_cond>:
- 3f8:	b8 1a 00 00 00       	mov    $0x1a,%eax
- 3fd:	cd 30                	int    $0x30
- 3ff:	c3                   	ret    
-
-00000400 <xchng>:
- 400:	b8 1b 00 00 00       	mov    $0x1b,%eax
- 405:	cd 30                	int    $0x30
- 407:	c3                   	ret    
-
-00000408 <check>:
- 408:	b8 1c 00 00 00       	mov    $0x1c,%eax
- 40d:	cd 30                	int    $0x30
- 40f:	c3                   	ret    

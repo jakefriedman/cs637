@@ -1,16 +1,10 @@
 #include "types.h"
-
 #include "defs.h"
 #include "param.h"
 #include "mmu.h"
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-
-#define DEFAULT_NUM_TIX 75;
-struct mutex_t{
-  volatile unsigned int lock;
-};
 
 struct spinlock proc_table_lock;
 
@@ -41,8 +35,6 @@ allocproc(void)
     p = &proc[i];
     if(p->state == UNUSED){
       p->state = EMBRYO;
-	  p->mutex = 0;
-	  p->cond = 0;
       p->pid = nextpid++;
       release(&proc_table_lock);
       return p;
@@ -126,117 +118,6 @@ copyproc(struct proc *p)
 
   if(p){  // Copy process state from p.
     np->parent = p;
-    np->num_tix = DEFAULT_NUM_TIX;
-    memmove(np->tf, p->tf, sizeof(*np->tf));
-  
-    np->sz = p->sz;
-    if((np->mem = kalloc(np->sz)) == 0){
-      kfree(np->kstack, KSTACKSIZE);
-      np->kstack = 0;
-      np->state = UNUSED;
-      np->parent = 0;
-	//np->mutex = 0;
-	//np->cond = 0;
-      return 0;
-    }
-    memmove(np->mem, p->mem, np->sz);
-
-    for(i = 0; i < NOFILE; i++)
-      if(p->ofile[i])
-        np->ofile[i] = filedup(p->ofile[i]);
-    np->cwd = idup(p->cwd);
-  }
-
-  // Set up new context to start executing at forkret (see below).
-  memset(&np->context, 0, sizeof(np->context));
-  np->context.eip = (uint)forkret;
-  np->context.esp = (uint)np->tf;
-
-  // Clear %eax so that fork system call returns 0 in child.
-  np->tf->eax = 0;
-  return np;
-}
-
-// Create a new process copying p as the parent.
-// Sets up stack to return as if from system call.
-// Caller must set state of returned proc to RUNNABLE.
-struct proc*
-copyproc_threads(struct proc *p, int stack, int routine, int args)
-{
-  int i;
-  struct proc *np;
-  // Allocate process.
-  if((np = allocproc()) == 0){
-    return 0;
-	}
-	
-	// Allocate kernel stack.
-  if((np->kstack = kalloc(KSTACKSIZE)) == 0){
-    np->state = UNUSED;
-    return 0;
-  }
-
-  np->tf = (struct trapframe*)(np->kstack + KSTACKSIZE) - 1;
-
-  if(p){  // Copy process state from p.
-    np->parent = p;
-    np->num_tix = DEFAULT_NUM_TIX;
-    memmove(np->tf, p->tf, sizeof(*np->tf));
-  
-    np->sz = p->sz;
-    np->mem = p->mem;
-    //memmove(np->mem, p->mem, np->sz);
-
-    for(i = 0; i < NOFILE; i++)
-      if(p->ofile[i])
-        np->ofile[i] = filedup(p->ofile[i]);
-    np->cwd = idup(p->cwd);
-  }
-
-  // Set up new context to start executing at forkret (see below).
-  memset(&np->context, 0, sizeof(np->context));
-  np->context.eip = (uint)forkret;
-  np->context.esp = (uint)np->tf;
-
-  // Clear %eax so that fork system call returns 0 in child.
-  np->tf->eax = 0;
-  
-  np->tf->esp = (stack + 1024 - 12);
-  *(int *)(np->tf->esp + np->mem) = routine;
-  *(int *)(np->tf->esp + np->mem + 8) = args;;
-  return np;
-}
-
-
-
-
-
-// Overload method for copyproc that takes number of tickets this
-// process should have
-// 
-// Create a new process copying p as the parent.
-// Sets up stack to return as if from system call.
-// Caller must set state of returned proc to RUNNABLE.
-struct proc*
-copyproc_tix(struct proc *p, int tix)
-{
-    int i;
-  struct proc *np;
-
-  // Allocate process.
-  if((np = allocproc()) == 0)
-    return 0;
-
-  // Allocate kernel stack.
-  if((np->kstack = kalloc(KSTACKSIZE)) == 0){
-    np->state = UNUSED;
-    return 0;
-  }
-  np->tf = (struct trapframe*)(np->kstack + KSTACKSIZE) - 1;
-
-  if(p){  // Copy process state from p.
-    np->parent = p;
-    np->num_tix = tix;;
     memmove(np->tf, p->tf, sizeof(*np->tf));
   
     np->sz = p->sz;
@@ -271,7 +152,7 @@ userinit(void)
 {
   struct proc *p;
   extern uchar _binary_initcode_start[], _binary_initcode_size[];
-  
+  cprintf("userinit\n");
   p = copyproc(0);
   p->sz = PAGE;
   p->mem = kalloc(p->sz);
@@ -338,6 +219,7 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release proc_table_lock and then reacquire it
       // before jumping back to us.
+      //cprintf("scheduling\n");
       c->curproc = p;
       setupsegs(p);
       p->state = RUNNING;
@@ -543,56 +425,6 @@ wait(void)
           p->pid = 0;
           p->parent = 0;
           p->name[0] = 0;
-	  p->mutex = 0;
-	  p->mutex = 0;
-	  p->cond = 0;
-	  p->cond = 0;
-          release(&proc_table_lock);
-
-          return pid;
-        }
-        havekids = 1;
-      }
-    }
-
-    // No point waiting if we don't have any children.
-    if(!havekids || cp->killed){
-      release(&proc_table_lock);
-      return -1;
-    }
-
-    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
-    sleep(cp, &proc_table_lock);
-  }
-}
-
-// Wait for a child process to exit and return its pid.
-// Return -1 if this process has no children.
-int
-wait_thread(void)
-{
-  struct proc *p;
-  int i, havekids, pid;
-
-  acquire(&proc_table_lock);
-  for(;;){
-    // Scan through table looking for zombie children.
-    havekids = 0;
-    for(i = 0; i < NPROC; i++){
-      p = &proc[i];
-      if(p->state == UNUSED)
-        continue;
-      if(p->parent == cp){
-        if(p->state == ZOMBIE){
-          // Found one.
-          kfree(p->kstack, KSTACKSIZE);
-          pid = p->pid;
-          p->state = UNUSED;
-          p->pid = 0;
-          p->parent = 0;
-	  p->mutex = 0;
-	  p->cond = 0;
-          p->name[0] = 0;
           release(&proc_table_lock);
           return pid;
         }
@@ -648,84 +480,3 @@ procdump(void)
   }
 }
 
-int
-tick(void)
-{
-return ticks;
-}
-
-
-
-
-void sleepcond(uint c, struct mutex_t * m) {
-  if(cp == 0)
-    panic("sleep");
-  acquire(&proc_table_lock);
-  cp->state = SLEEPING;
-  cp->cond = c;
-  cp->mutex = (int)m;
-  mutex_unlock(m);
-  popcli();
-  sched();
-  pushcli();
-  mutex_lock(m);
-  cp->mutex = 0;
-  cp->cond = 0;
-  release(&proc_table_lock);
-  popcli();
-}
-
-
-int wakecond(uint c) {
-  acquire(&proc_table_lock);
-  struct proc * p;
-  int done = 0;
- //cprintf("loooking for cond %d to wake\n", c);
-  for(p = proc; p < &proc[NPROC]; p++)
-    {
-	//cprintf("proc addr%d, cond %d\n", p, p->cond);
-      if(p->state == SLEEPING && p->cond == c)
-	{
-	  p->state = RUNNABLE;
-	  //p->cond = 0;
-	  struct mutex_t * mut;
-	  mut = (struct mutex_t*) p->mutex;
-	// cprintf("found1!, pid %d\n", p->pid);
-	  //mutex_lock(mut);
-	  done = 1;
-	  //p->mutex = 0;
-
-	  break;
-	}
-    }
- 
-  //cprintf("exited loop\n");
-
-
-release(&proc_table_lock);
-
-if(done)
-{
- return p->pid;
-}
-//cprintf("none found\n");	 
-     return -1;
-
-}
-
-void mutex_lock(struct mutex_t* lock) {
-  //cprintf("locking,kernel-%d,value-%d\n", lock, lock->lock);
-  while(xchg(&lock->lock, 1) == 1);
-	cprintf("waiting\n");
-}
-
-void mutex_unlock(struct mutex_t* lock) {
-  //cprintf("unlocking,kernel-%d\n", lock);
-  xchg(&lock->lock, 0);
- // cprintf("unlockkernelval-%d\n", lock->lock);
-}
-
-
-uint xchnge(volatile uint * mem, uint new) {
-	return xchg(mem, new);
-}

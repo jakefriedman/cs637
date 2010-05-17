@@ -5,8 +5,11 @@
 #include "proc.h"
 #include "x86.h"
 
+
 static void bootothers(void);
 static void mpmain(void) __attribute__((noreturn));
+static void kalloctest(void);
+
 
 // Bootstrap processor starts running C code here.
 int
@@ -31,12 +34,12 @@ main(void)
   iinit();         // inode cache
   console_init();  // I/O devices & their interrupts
   ide_init();      // disk
-
   if(!ismp)
     timer_init();  // uniprocessor timer
   userinit();      // first user process
   bootothers();    // start other processors
-
+  
+ // kalloctest();    //test kalloc(bytes)
   // Finish setting up this processor in mpmain.
   mpmain();
 }
@@ -54,7 +57,6 @@ mpmain(void)
   xchg(&cpus[cpu()].booted, 1);
 
   cprintf("cpu%d: scheduling\n", cpu());
-  int fd = fscreate("/journal", 1, T_FILE, 0, 0);  
   scheduler();
 }
 
@@ -86,3 +88,61 @@ bootothers(void)
   }
 }
 
+
+struct ktest{
+	int number;
+		struct ktest * nextk;
+};
+
+
+static void kalloctest(void)
+{
+   int sz1, sz2, sz3, sz4;
+  struct ktest * ktst;
+  struct ktest * ktst1;
+  struct ktest * ktst2;
+  sz1 = 15;
+  sz2 = 27;
+  sz3 = 45;
+  sz4 = 8898970;
+  
+   cprintf("Kallocing test %d\n", sz1);
+   char * test = kalloc(sz1);
+   cprintf("address ret %x\n", test);
+   int k;
+   for(k = 0; k < 16; k++)
+{
+	test[k] = 'a';
+	cprintf("contents of test at %d: %s \n", k,test);
+}
+
+cprintf("Kallocing space for 3 ktest structs: %d bytes\n", sizeof(struct ktest)*3);
+
+ktst = kalloc(sizeof(struct ktest));
+ktst1 = kalloc(sizeof(struct ktest));
+ktst2 = kalloc(sizeof(struct ktest));
+
+ktst->number = sz2;
+ktst1->number = sz3;
+ktst2->number = sz4;
+ktst->nextk = ktst1;
+ktst1->nextk = ktst2;
+ktst2->nextk = ktst;
+
+cprintf("addresses: ktst - %x, ktst1 - %x, ktst2 - %x\n", ktst, ktst1, ktst2);
+cprintf("ktst data: num - %d, ptr - %x\n",ktst->number, ktst->nextk);
+cprintf("ktst1 data: num - %d, ptr - %x\n",ktst1->number, ktst1->nextk);
+cprintf("ktst2 data: num - %d, ptr - %x\n",ktst2->number, ktst2->nextk);
+
+cprintf("freeing everything\n");
+cprintf("kfree test\n");
+kfree(test, sz1);
+cprintf("kfree ktst1\n");
+kfree(ktst1, sizeof(struct ktest));
+cprintf("kfree ktst2\n");
+kfree(ktst2, sizeof(struct ktest));
+cprintf("kfree ktst\n");
+kfree(ktst, sizeof(struct ktest));
+
+cprintf("THAT'S ALL FOLKS!\n");
+}

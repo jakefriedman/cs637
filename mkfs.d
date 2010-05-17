@@ -1,4 +1,4 @@
-mkfs: mkfs.c types.h /usr/include/stdio.h /usr/include/features.h \
+mkfs: mkfs.c /usr/include/stdio.h /usr/include/features.h \
   /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
   /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h \
   /usr/lib/gcc/i486-linux-gnu/4.2.4/include/stddef.h \
@@ -15,4 +15,4 @@ mkfs: mkfs.c types.h /usr/include/stdio.h /usr/include/features.h \
   /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h \
   /usr/include/alloca.h /usr/include/string.h /usr/include/bits/string.h \
   /usr/include/bits/string2.h /usr/include/fcntl.h \
-  /usr/include/bits/fcntl.h /usr/include/assert.h fs.h
+  /usr/include/bits/fcntl.h /usr/include/assert.h types.h fs.h

@@ -1,7 +1,4 @@
-//#include "thread.h"
 struct stat;
-struct mutex_t;
-struct cond_t;
 
 // system calls
 int fork(void);
@@ -24,12 +21,7 @@ int dup(int);
 int getpid();
 char* sbrk(int);
 int sleep(int);
-int tick(void);
-int fork_tickets(int);
-int fork_thread(int, int, int);
-int sleep_cond(unsigned int, struct mutex_t *);
-int wake_cond(unsigned int);
-unsigned int xchng(volatile unsigned int*, unsigned int);
+
 // ulib.c
 int stat(char*, struct stat*);
 char* strcpy(char*, char*);
