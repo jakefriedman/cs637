@@ -641,7 +641,7 @@ _namei(char *path, int parent, char *name)
     ip = iget(ROOTDEV, 1);}
   else
     ip = idup(cp->cwd);
-
+  
   while((path = skipelem(path, name)) != 0){
     //   cprintf("loop\n");
     ilock(ip);
@@ -688,7 +688,7 @@ int
 checki(struct inode * ip, int off)
 {
   if(ip->size < off)
-	return 0;
+    return 0;
   return bcheck(ip->dev, bmap(ip, off/BSIZE, 0));
 }
 
@@ -701,17 +701,18 @@ writed(struct inode *ip, char *src, uint off, uint n)
 {
   uint tot, m;
   struct buf *bp;
-
+  
   if(ip->type == T_DEV){
     if(ip->major < 0 || ip->major >= NDEV || !devsw[ip->major].write)
       return -1;
-    //  return devsw[ip->major].write(ip, src, n);
+cprintf("abcdttt\n");
+    return devsw[ip->major].write(ip, src, n);
   }
   if(off + n < off)
     return -1;
   if(off + n > MAXFILE*BSIZE)
     n = MAXFILE*BSIZE - off;
-
+  
   for(tot=0; tot<n; tot+=m, off+=m, src+=m){
     bp = bread(ip->dev, bmap(ip, off/BSIZE, 1));
     m = min(n - tot, BSIZE - off%BSIZE);
@@ -719,7 +720,7 @@ writed(struct inode *ip, char *src, uint off, uint n)
     bwrite(bp);
     brelse(bp);
   }
-
+  
   if(n > 0 && off > ip->size){
     ip->size = off;
     iupdate(ip);
@@ -732,9 +733,9 @@ writed(struct inode *ip, char *src, uint off, uint n)
 int
 writei(struct inode *ip, char *src, uint off, uint n)
 {
-cprintf("writei: inum: %d, dev: %d, 1st char: %s  \n", ip->inum, ip->dev, src[0]);
+  cprintf("writei: inum: %d, dev: %d, 1st char: %s  \n", ip->inum, ip->dev, src[0]);
   if(ip->inum == 1 && ip->dev == 1)
-     return writed(ip, src, off,n);
+    return writed(ip, src, off,n);
   mutexlock(&wlock);
   cprintf("type %d\n", ip->type);
   uint tot, m, sector, sect_cnt;
@@ -743,55 +744,57 @@ cprintf("writei: inum: %d, dev: %d, 1st char: %s  \n", ip->inum, ip->dev, src[0]
   //struct inode * jp;
   uint journal_offset = 0;
   sect_cnt = 0;
+cprintf("abcd\n");
   if(ip->type == T_DEV){
     if(ip->major < 0 || ip->major >= NDEV || !devsw[ip->major].write)
       return -1;
-    return devsw[ip->major].write(ip, src, n);
-
+cprintf("abcd\n");
+    //return devsw[ip->major].write(ip, src, n);
   }
-if(journ == 0) {  //allocate in mkfs.c !
-  cprintf("allocating journal");
-  journ = 1;
+cprintf("abcd\n");
+  if(journ == 0) {  //allocate in mkfs.c !
+    cprintf("allocating journal");
+    journ = 1;
     jp = fscreate("/journal", 1, T_FILE, 0, 0);  
-journ  = 1;
-cprintf("created!\n");
-  if(jp == 0)
-    cprintf("JP is 0");
-}
- cprintf("journ created %d\n", jp);
+    journ  = 1;
+    cprintf("created!\n");
+    if(jp == 0)
+      cprintf("JP is 0");
+  }
+  cprintf("journ created %d\n", jp);
   if(off + n < off)
     return -1;
   if(off + n > MAXFILE*BSIZE)
     n = MAXFILE*BSIZE - off;
-
+  
   cprintf("journal inode: %d, write inode:%d, src: %d, amount to write: %d, offset: %d\n", jp, ip,src , n, off);
-
-//bread ibuf beginbuf
-beginbuf = bread(jp->dev, bmap(jp, journal_offset/BSIZE, 1)); 
-journal_offset += BSIZE;
-//cprintf("%d - blcksz\n", sizeof(struct begin_block));
-struct begin_block *beginblock = kalloc(PAGE); //alloc struct
-uchar* k = beginblock;
-beginblock->identifier = 'B';
-beginblock->size = n; //plus inode block
-beginblock->indirect = 0;
-beginblock->nblocks = 0;
-cprintf("begin alloced\n");
-//create skip array for prealloc
+  
+  //bread ibuf beginbuf
+  beginbuf = bread(jp->dev, bmap(jp, journal_offset/BSIZE, 1)); 
+  journal_offset += BSIZE;
+  //cprintf("%d - blcksz\n", sizeof(struct begin_block));
+  struct begin_block *beginblock = kalloc(PAGE); //alloc struct
+  uchar* k = beginblock;
+  beginblock->identifier = 'B';
+  beginblock->size = n; //plus inode block
+  beginblock->indirect = 0;
+  beginblock->nblocks = 0;
+  cprintf("begin alloced\n");
+  //create skip array for prealloc
   uint * skip = kalloc(PAGE); 
-//create copy of inode for consistent metadata
- cprintf("skip alloced\n");
+  //create copy of inode for consistent metadata
+  cprintf("skip alloced\n");
+  
+  int i;
+  
+  for(i = 0; i < 50; i++)
+    skip[i] = 0;
+  
+  
+  //for(i = 0; i < 50; i++)
+  // cprintf("skip at %d,   %d\n", i, skip[i]);
 
-int i;
-
-for(i = 0; i < 50; i++)
- skip[i] = 0;
-
-
-//for(i = 0; i < 50; i++)
-// cprintf("skip at %d,   %d\n", i, skip[i]);
-
-
+  
   if(ip->addrs[INDIRECT] == 0) //no indirect block, create buffer one for journal
     {
       cprintf("inode needs indirect blk\n");
@@ -802,42 +805,42 @@ for(i = 0; i < 50; i++)
       indir = bread(ip->dev, sector);
       int v = 0;
       for(v = 0; v < 512; v++)
-	  indir->data[v] = '0';
+	indir->data[v] = '0';
     }
   else //one exists, bread it
     {
       cprintf("inode has indirect block, reading into: %d buffer\n", indir);
       indir = bread(ip->dev, ip->addrs[INDIRECT]);
     }
-
+  
   //for(i = 0; i < 50; i++)
   // cprintf("skip at %d,   %d\n", i, skip[i]);
+  
+  for(i = 0; i < (sizeof(struct begin_block)); i++) { //write begin block buffer
+    beginbuf->data[i] = k[i];
+  }
 
-for(i = 0; i < (sizeof(struct begin_block)); i++) { //write begin block buffer
-	beginbuf->data[i] = k[i];
-}
+  for(i = sizeof(struct begin_block); i < 512; i++) { //write rest of begin block buffer w/ '0'
+    beginbuf->data[i] = '0';
+  } 
+  
+  
+  bwrite(beginbuf);  //write beginbuf, bwrite guarantees data has been written
+  
+  cprintf("begin block written to journal: dev: %d, sector: %d\n", beginbuf->dev,beginbuf->sector);
+  
+  brelse(beginbuf); 
 
-for(i = sizeof(struct begin_block); i < 512; i++) { //write rest of begin block buffer w/ '0'
-beginbuf->data[i] = '0';
-} 
-
-
-bwrite(beginbuf);  //write beginbuf, bwrite guarantees data has been written
-
- cprintf("begin block written to journal: dev: %d, sector: %d\n", beginbuf->dev,beginbuf->sector);
-
-brelse(beginbuf); 
-
-
-k = beginblock; //now used as end block
-beginblock->identifier = 'E';
-beginblock->size = n;
-beginblock->nblocks = 0;
- for(i = 0; i< 50 ; i++)
-   beginblock->sector[i] = 0;
- cprintf("beginning to write data to journal\n");
-//write data to journal
- for(tot=0; tot<n; tot+=m, off+=m, src+=m){
+  
+  k = beginblock; //now used as end block
+  beginblock->identifier = 'E';
+  beginblock->size = n;
+  beginblock->nblocks = 0;
+  for(i = 0; i< 50 ; i++)
+    beginblock->sector[i] = 0;
+  cprintf("beginning to write data to journal\n");
+  //write data to journal
+  for(tot=0; tot<n; tot+=m, off+=m, src+=m){
     //check if sector already exists
     sector = premap(ip, indir, off/BSIZE);
     cprintf("sector returned by premap: %d, offset: %d \n", sector, off);
@@ -854,7 +857,7 @@ beginblock->nblocks = 0;
       {
 	bp = bread(ip->dev, sector);
       }
-   
+    
     //update buffer
     m = min(n - tot, BSIZE - off%BSIZE);
     memmove(bp->data + off%BSIZE, src, m); //update buffer with new data
@@ -867,7 +870,7 @@ beginblock->nblocks = 0;
     bp->sector = bmap_j(jp, journal_offset/BSIZE, 1, skip); //update sector to journal
     
     cprintf("journ off %d, dev %d, sector %d, nblk %d\n", journal_offset, bp->dev, bp->sector, beginblock->nblocks);
-
+    
     journal_offset += m;
     //write to journal
     bwrite(bp);
@@ -876,18 +879,18 @@ beginblock->nblocks = 0;
   }
  // for(i = 0 ; i < 50; i++)
  // cprintf("sectors: %d\n", beginblock->sector[i]);
-
- cprintf("num sectors = %d\n", beginblock->nblocks);
+  
+  cprintf("num sectors = %d\n", beginblock->nblocks);
   if(n > 0 && off > ip->size){
     ip->size = off;
-//iupdate(ip);
+    //iupdate(ip);
   }
-
+  
   for(i = 0; i < 50; i++)
     continue;
-    // cprintf("skip at %d,   %d\n", i, skip[i]);
+  // cprintf("skip at %d,   %d\n", i, skip[i]);
   
-cprintf("data journaled!\n");
+  cprintf("data journaled!\n");
   //data has been journaled
   //write inode, indir blk, end to journal
   //use IUPDATE @ end
@@ -900,30 +903,30 @@ cprintf("data journaled!\n");
   journal_offset += BSIZE;
   memmove(&(ibuf->data), &(indir->data), 512);
   //*(ibuf->data) = *(indir->data);
-
+  
   brelse(indir); //release old buffer, no write though
   bwrite(ibuf); //write indirect block to journal
-
+  
   cprintf("indirect inode blck journaled, dev %d sector %d off_after %d\n", jp->dev, ibuf->sector, journal_offset);
-
+  
   brelse(ibuf);
- 
+  
   ibuf = bread(jp->dev, bmap_j(jp, journal_offset/BSIZE, 1, skip));  //for inode
   journal_offset += BSIZE;
   k = ip;
   for(i = 0; i < (sizeof(struct inode)); i++) {
-	ibuf->data[i] = k[i];
+    ibuf->data[i] = k[i];
   }
   for(i = sizeof(struct inode); i < 512; i++) {
-	ibuf->data[i] = '0';
+    ibuf->data[i] = '0';
   }
   beginblock->sector[beginblock->nblocks] = 0;
   beginblock->nblocks++;
   bwrite(ibuf); //write inode to journal
- cprintf("inode blck journaled, dev %d sector %d off_after %d\n", jp->dev, ibuf->sector, journal_offset);
+  cprintf("inode blck journaled, dev %d sector %d off_after %d\n", jp->dev, ibuf->sector, journal_offset);
   brelse(ibuf); 
 
-      //write skip array
+  //write skip array
   ibuf = bread(jp->dev, bmap_j(jp, journal_offset/BSIZE, 1, skip));
   journal_offset += BSIZE;
   struct begin_block * skp;
@@ -931,80 +934,80 @@ cprintf("data journaled!\n");
   skp->identifier = 'S';
   k = skp;
   int z;
-   for (z = 0 ; z < 50 ; z++)
-     skp->sector[z] = skip[z];
+  for (z = 0 ; z < 50 ; z++)
+    skp->sector[z] = skip[z];
   for(i = 0; i < (sizeof(struct begin_block)); i++) { //write end block buffer
-	ibuf->data[i] = k[i];
-}
+    ibuf->data[i] = k[i];
+  }
   //  memset(skp,1,PAGE);
-for(i = sizeof(struct begin_block); i < 512; i++) { //write rest of end block buffer w/ '0'
+  for(i = sizeof(struct begin_block); i < 512; i++) { //write rest of end block buffer w/ '0'
   ibuf->data[i] = '0';
-} 
-//wait for writes to finish, write skip
- bwrite(ibuf);
- cprintf("skip blck journaled, dev %d sector %d off_after %d\n", jp->dev, ibuf->sector, journal_offset);
- brelse(ibuf);
- uint tmp =  bmap_j(jp, journal_offset/BSIZE, 1, skip);
- ibuf = bread(jp->dev, tmp);
- cprintf("read end blk\n");
-
-k = beginblock;
-for(i = 0; i < (sizeof(struct begin_block)); i++) { //write end block buffer
-	beginbuf->data[i] = k[i];
-}
-
-for(i = sizeof(struct begin_block); i < 512; i++) { //write rest of end block buffer w/ '0'
-beginbuf->data[i] = '0';
-} 
- cprintf("writing end buf\n");
- bwrite(ibuf);
- brelse(ibuf); //end buffer written
-
-//wait for writes to complete, write stuff to disk, free journal entry
- 
- cprintf("everything journaled!, starting allocs\n");
-
- //allocate everything
- for(i = 0 ; i < 50 ; i++)
-   {
-     sector = skip[i];
-     if(sector != 0) {
-       //      cprintf("ballocing %d\n", skip[i]);
-       uint n = balloc_s(ip->dev, sector);
-       cprintf("balloc ret %d, expected %d \n",n, sector);
-       if (n != sector)
-	 panic("bad sector alloc");
-     }
+  } 
+  //wait for writes to finish, write skip
+  bwrite(ibuf);
+  cprintf("skip blck journaled, dev %d sector %d off_after %d\n", jp->dev, ibuf->sector, journal_offset);
+  brelse(ibuf);
+  uint tmp =  bmap_j(jp, journal_offset/BSIZE, 1, skip);
+  ibuf = bread(jp->dev, tmp);
+  cprintf("read end blk\n");
+  
+  k = beginblock;
+  for(i = 0; i < (sizeof(struct begin_block)); i++) { //write end block buffer
+    beginbuf->data[i] = k[i];
+  }
+  
+  for(i = sizeof(struct begin_block); i < 512; i++) { //write rest of end block buffer w/ '0'
+    beginbuf->data[i] = '0';
+  } 
+  cprintf("writing end buf\n");
+  bwrite(ibuf);
+  brelse(ibuf); //end buffer written
+  
+  //wait for writes to complete, write stuff to disk, free journal entry
+  
+  cprintf("everything journaled!, starting allocs\n");
+  
+  //allocate everything
+  for(i = 0 ; i < 50 ; i++)
+    {
+      sector = skip[i];
+      if(sector != 0) {
+	//      cprintf("ballocing %d\n", skip[i]);
+	uint n = balloc_s(ip->dev, sector);
+	cprintf("balloc ret %d, expected %d \n",n, sector);
+	if (n != sector)
+	  panic("bad sector alloc");
+      }
    }
-
- cprintf("balloc done, writing data\n");
-//iterate through data[], write to disk @ correct spot
- for(i = 0; i < 50; i++)
-   {
-     if(beginblock->sector[i] != 0)
-       {
-	 ibuf = bread(ip->dev, beginblock->sector[i]);
-	 memmove(&(ibuf->data), &data[i], 512);
-	 cprintf("data write iter %d, sector %d\n", i,beginblock->sector[i]);
-	 bwrite(ibuf);
-	 brelse(ibuf);
-       }
-   }
- cprintf("updating inode\n");
- iupdate(ip); //update inode on disk
- cprintf("deleting journal\n");
- itrunc(jp); //delete journal
- kfree(beginblock, PAGE);
- // cprintf("blah!\n");
- //kfree(skp, PAGE);
- // cprintf("blah3!\n");
- kfree(skip, PAGE);
- //cprintf("/blah3!\n");
- //cprintf("blah3!\n");
- mutexunlock(&wlock);
- cprintf("write done\n");
- //cprintf("blah2!\n");
- return n;
+  
+  cprintf("balloc done, writing data\n");
+  //iterate through data[], write to disk @ correct spot
+  for(i = 0; i < 50; i++)
+    {
+      if(beginblock->sector[i] != 0)
+	{
+	  ibuf = bread(ip->dev, beginblock->sector[i]);
+	  memmove(&(ibuf->data), &data[i], 512);
+	  cprintf("data write iter %d, sector %d\n", i,beginblock->sector[i]);
+	  bwrite(ibuf);
+	  brelse(ibuf);
+	}
+    }
+  cprintf("updating inode\n");
+  iupdate(ip); //update inode on disk
+  cprintf("deleting journal\n");
+  itrunc(jp); //delete journal
+  kfree(beginblock, PAGE);
+  // cprintf("blah!\n");
+  //kfree(skp, PAGE);
+  // cprintf("blah3!\n");
+  kfree(skip, PAGE);
+  //cprintf("/blah3!\n");
+  //cprintf("blah3!\n");
+  mutexunlock(&wlock);
+  cprintf("write done\n");
+  //cprintf("blah2!\n");
+  return n;
 }
 
 uint
@@ -1013,25 +1016,25 @@ premap(struct inode *ip, struct buf * indir, uint bn)
   uint addr;
   uint *a;
   //struct buf *bp;
-
+  
   if(bn < NDIRECT){
     if((addr = ip->addrs[bn]) == 0){
-        return 0;
+      return 0;
     }
     return addr;
   }
   bn -= NDIRECT;
-
+  
   if(bn < NINDIRECT){
     // Load indirect block, allocating if necessary.
     a = (uint*)indir->data;
     if((addr = a[bn]) == 0){
       
-        return 0;
-      }
+      return 0;
+    }
     return addr;
   }
-
+  
   panic("premap: out of range");
 }
 
@@ -1042,7 +1045,7 @@ prealloc(uint dev, uint * skip)
   int b, bi, m, j, dont;
   struct buf *bp;
   struct superblock sb;
-
+  
   bp = 0;
   dont = 0;
   readsb(dev, &sb);
@@ -1053,19 +1056,19 @@ prealloc(uint dev, uint * skip)
       dont = 0;
       if((bp->data[bi/8] & m) == 0){  // Is block free?
         for(j = 0; j < 50; j++) {
-		if (skip[j] == b+bi)
-		    {
-			dont = 1;
-			break;
-		    }
-		else if (skip[j] == 0)
-		  {
-		    skip[j] = b+bi;
-		    break;
-		  }
+	  if (skip[j] == b+bi)
+	    {
+	      dont = 1;
+	      break;
+	    }
+	  else if (skip[j] == 0)
+	    {
+	      skip[j] = b+bi;
+	      break;
+	    }
 	}
 	if (dont)
-		continue;
+	  continue;
 	else
 	  {
 	    brelse(bp);
@@ -1078,20 +1081,20 @@ prealloc(uint dev, uint * skip)
   panic("balloc: out of blocks");
 }
 
- void updatecpy(struct inode * cpy, struct buf * indir, uint bn, uint addr)
+void updatecpy(struct inode * cpy, struct buf * indir, uint bn, uint addr)
 {
-	uint * a;
-	struct buf * bp;
-	if(bn < NDIRECT)
-	  {
-		cpy->addrs[bn] = addr;
-		return;
-	  }
-	else if (bn < NINDIRECT){
-		a = (uint*)indir->data;
-		a[bn] = addr;
-		return;
-	}
+  uint * a;
+  struct buf * bp;
+  if(bn < NDIRECT)
+    {
+      cpy->addrs[bn] = addr;
+      return;
+    }
+  else if (bn < NINDIRECT){
+    a = (uint*)indir->data;
+    a[bn] = addr;
+    return;
+  }
 }
 
 
@@ -1126,48 +1129,48 @@ uint
 balloc_j(uint dev, uint * skip)
 {
   int b, bi, m, j;
-int dont;
+  int dont;
   struct buf *bp;
   struct superblock sb;
-cprintf("balloc_j called\n");
+  cprintf("balloc_j called\n");
   bp = 0;
   readsb(dev, &sb);
   for(b = 0; b < sb.size; b += BPB){
     bp = bread(dev, BBLOCK(b, sb.ninodes));
     for(bi = 0; bi < BPB; bi++){
       m = 1 << (bi % 8);
-	dont = 0;
+      dont = 0;
       if((bp->data[bi/8] & m) == 0){  // Is block free?
-
-		for(j = 0; j < 50; j++) {
-		cprintf("skip array at %d :  %d\n", j, skip[j]);
-		if (skip[j] == b+bi)
-		    {
-			cprintf("skipping in balloc_j %d\n", b+bi);
-			dont = 1;
-			break;
-		    }
-		else if(skip[j] ==0)
-			break;
+	
+	for(j = 0; j < 50; j++) {
+	  cprintf("skip array at %d :  %d\n", j, skip[j]);
+	  if (skip[j] == b+bi)
+	    {
+	      cprintf("skipping in balloc_j %d\n", b+bi);
+	      dont = 1;
+	      break;
+	    }
+	  else if(skip[j] ==0)
+	    break;
 	}
-
+	
 	if (dont)
-		continue;
+	  continue;
 	else
 	  {
 	    //cprintf("returning from balloc_j\n");
-
-	bp->data[bi/8] |= m;  // Mark block in use on disk.
-	//cprintf("returning from balloc_j\n");
-
-        bwrite(bp);
-	//cprintf("returning from balloc_j\n");
-        brelse(bp);
-	//cprintf("returning from balloc_j\n");
-
-        return b + bi;
+	    
+	    bp->data[bi/8] |= m;  // Mark block in use on disk.
+	    //cprintf("returning from balloc_j\n");
+	    
+	    bwrite(bp);
+	    //cprintf("returning from balloc_j\n");
+	    brelse(bp);
+	    //cprintf("returning from balloc_j\n");
+	    
+	    return b + bi;
+	  }
       }
-    }
     }
     brelse(bp);
   }
@@ -1179,7 +1182,7 @@ bmap_j(struct inode *ip, uint bn, int alloc, uint * skip)
 {
   uint addr, *a;
   struct buf *bp;
-
+  
   if(bn < NDIRECT){
     if((addr = ip->addrs[bn]) == 0){
       if(!alloc)
@@ -1190,7 +1193,7 @@ bmap_j(struct inode *ip, uint bn, int alloc, uint * skip)
     return addr;
   }
   bn -= NDIRECT;
-
+  
   if(bn < NINDIRECT){
     // Load indirect block, allocating if necessary.
     if((addr = ip->addrs[INDIRECT]) == 0){
@@ -1200,7 +1203,7 @@ bmap_j(struct inode *ip, uint bn, int alloc, uint * skip)
     }
     bp = bread(ip->dev, addr);
     a = (uint*)bp->data;
-  
+    
     if((addr = a[bn]) == 0){
       if(!alloc){
         brelse(bp);
@@ -1213,7 +1216,6 @@ bmap_j(struct inode *ip, uint bn, int alloc, uint * skip)
     //cprintf("ret\n");
     return addr;
   }
-
+  
   panic("bmap: out of range");
 }
-
